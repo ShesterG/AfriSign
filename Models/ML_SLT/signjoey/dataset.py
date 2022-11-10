@@ -57,6 +57,9 @@ class SignTranslationDataset(data.Dataset):
         for annotation_file in path:
             tmp = load_dataset_file(annotation_file)
             for s in tmp:
+                s["sin_lang"] = s["lang"]
+                s["lang"] = "EN"                
+                s["name"] = s["sin_lang"] + s["name"]
                 seq_id = s["name"]
                 if seq_id in samples:
                     assert samples[seq_id]["name"] == s["name"]
