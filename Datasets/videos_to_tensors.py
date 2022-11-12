@@ -38,8 +38,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 
 def main(args):
-    lan = "nsi" 
-    folder_name = "1"
+    lan = "ase" 
+    folder_name = "13"
 
 
     root_path = Path(args.save_path)
@@ -62,13 +62,20 @@ def main(args):
     mp_drawing = mp.solutions.drawing_utils # Drawing utilities
     mp_pose = mp.solutions.pose
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:        
-      for videopath in files_grabbed[0:48]: #edit the range here
+      for videopath in files_grabbed[642:702]: #edit the range here
           #vid = cv2.VideoCapture(str(video_path))
           refB = str(videopath).split('/')[-1].split('.')[0]
           os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {root_path}/{refB}.json 2>&1")
           
           with open(f"{root_path}/{refB}.json", "r") as infile:
+              print(str(videopath))
               data = infile.read()
+
+              if str(data)[:9]=="[CHAPTER]": 
+                pass 
+              else:  
+                data = "[CHAPTER]" + str(data).split("[CHAPTER]",1)[1]
+          
           data = data.replace("\n", "|")
           data = data.replace("|[/CHAPTER]|", "\n")
           colnames=["CHAPTER","id","time_base","start","start_time","end","end_time","title"]
@@ -89,7 +96,10 @@ def main(args):
           for index, row in df.iterrows():           
               #opencv_method
               verse_dict = {}              
-              verse_dict["name"] = row["title"]
+              verse_dict["name"] = lan + row["title"].strip().replace(" ", "_")
+              verse_torchpath = "/content/drive/MyDrive/Sign_Language_Videos/dataset/ALL240/verses_tensors/" + verse_dict["name"] + ".pt" 
+              if Path(verse_torchpath).exists():
+                continue
               verse_dict["lang"] = lan
               verse_dict["signer"] = "SignerX"            
               verse_dict["duration"] = float(float(row["end_time"]) - float(row["start_time"]))
@@ -152,7 +162,8 @@ def main(args):
               try:
                 verse_torch = torch.stack(body_feature_list,0)
                 verse_torch = torch.mul(verse_torch, (1/mean_distance))
-                verse_dict["sign"] = verse_torch
+                torch.save(verse_torch, verse_torchpath)
+                verse_dict["sign"] = verse_torchpath #torch.load(verse_torchpath)
                 verses_list.append(verse_dict)
               except RuntimeError:
                 print(f"ERROR: Video {verse_i} - {refB}.")   
