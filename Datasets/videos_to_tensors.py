@@ -39,7 +39,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 def main(args):
     lan = "ase" 
-    folder_name = "13"
+    folder_name = "3"
 
 
     root_path = Path(args.save_path)
@@ -62,7 +62,7 @@ def main(args):
     mp_drawing = mp.solutions.drawing_utils # Drawing utilities
     mp_pose = mp.solutions.pose
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:        
-      for videopath in files_grabbed[642:702]: #edit the range here
+      for videopath in files_grabbed[112:156]: #edit the range here
           #vid = cv2.VideoCapture(str(video_path))
           refB = str(videopath).split('/')[-1].split('.')[0]
           os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {root_path}/{refB}.json 2>&1")
@@ -98,13 +98,17 @@ def main(args):
               verse_dict = {}              
               verse_dict["name"] = lan + row["title"].strip().replace(" ", "_")
               verse_torchpath = "/content/drive/MyDrive/Sign_Language_Videos/dataset/ALL240/verses_tensors/" + verse_dict["name"] + ".pt" 
-              if Path(verse_torchpath).exists():
-                continue
               verse_dict["lang"] = lan
               verse_dict["signer"] = "SignerX"            
               verse_dict["duration"] = float(float(row["end_time"]) - float(row["start_time"]))
               verse_dict["gloss"] = "GLOSS GLOSS GLOSS'"
               verse_dict["text"] = "Text"
+              if Path(verse_torchpath).exists():
+                verse_dict["sign"] = verse_torchpath #torch.load(verse_torchpath)
+                verses_list.append(verse_dict)
+                verse_i += 1
+                print(f"Verse {verse_i} - {verse_dict['name']} done.")
+                continue
               ##currentframe = 1
               step = 1/25
               body_feature_list=[]
