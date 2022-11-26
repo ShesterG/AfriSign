@@ -55,7 +55,7 @@ class SignTranslationDataset(data.Dataset):
         for annotation_file in path:
             tmp = load_dataset_file(annotation_file)
             for s in tmp:
-                s["name"] = s["lang"] + s["name"] #lang is the sign_language
+                #s["name"] = s["lang"] + s["name"] #lang is the sign_language
                 seq_id = s["name"]
                 if seq_id in samples:
                     assert samples[seq_id]["name"] == s["name"]
@@ -83,7 +83,7 @@ class SignTranslationDataset(data.Dataset):
                         sample["name"],
                         sample["signer"],
                         # This is for numerical stability
-                        sample["sign"] + 1e-8,
+                        torch.load("ALL240/v_tensors2" + sample["sign"][73:]) + 1e-8,
                         sample["gloss"].strip(),
                         sample["text"].strip(),
                     ],
