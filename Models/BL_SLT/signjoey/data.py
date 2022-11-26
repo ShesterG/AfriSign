@@ -116,8 +116,6 @@ def load_data(data_cfg: dict) -> (Dataset, Dataset, Dataset, Vocabulary, Vocabul
     train_data = SignTranslationDataset(
         path=train_paths,
         fields=(sequence_field, signer_field, sgn_field, gls_field, txt_field),
-        filter_pred=lambda x: len(vars(x)["sgn"]) <= max_sent_length
-        and len(vars(x)["txt"]) <= max_sent_length,
     )
 
     gls_max_size = data_cfg.get("gls_voc_limit", sys.maxsize)
