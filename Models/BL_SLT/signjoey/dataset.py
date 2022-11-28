@@ -78,7 +78,7 @@ class SignTranslationDataset(data.Dataset):
                             sample["name"],
                             sample["signer"],
                             # This is for numerical stability
-                            torch.load("ALL240/v_tensors2" + sample["sign"][73:]) + 1e-8,
+                            torch.load("/home/s_gueuwou/ALL240/v_tensors2" + sample["sign"][73:]) + 1e-8,
                             sample["gloss"].strip(),
                             sample["text"].strip(),
                         ],
