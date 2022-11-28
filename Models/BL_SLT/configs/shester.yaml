@@ -37,7 +37,7 @@ training:
     reset_scheduler: true
     reset_optimizer: true
     random_seed: 44
-    model_dir:  "/home/s_gueuwou/ALL240/SavedModels/NSI27" 
+    model_dir:  "/home/s_gueuwou/ALL240/SavedModels/NSI28" 
     recognition_loss_weight: 0
     translation_loss_weight: 1.0
     kl_weight: 1
