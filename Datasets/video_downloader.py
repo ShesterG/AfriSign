@@ -5,39 +5,34 @@ import argparse
 from pathlib import Path
 import glob
 import itertools
+import pickle
+import gzip
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 
 def main(args):
-    lan = "ase"
+    #lan = "ase"
     r_path = Path(args.save_path)
 
-    if Path(f"{r_path}/{lan}240.json").exists():
-      print(f"{lan}240.json exists.")
-    else:  
-      combined = []
-      for json_file in r_path.glob("*.json"): #Assuming that your files are json files
-          with open(json_file, "rb") as infile:
-              combined.append(json.load(infile))
-      combined_list = list(itertools.chain.from_iterable(combined))
-      with open(f"{r_path}/{lan}240.json", "w") as f:
-          json.dump(combined_list, f)
     
+    filepath = "/content/gbucketafrisign/all_links_720_29.list"
+    with gzip.open(filepath, "rb") as f:
+      data = pickle.load(f)
     
-    logging.info(f"Downloading {lan} set")
-    with open(f"{r_path}/{lan}240.json", "r") as f:
-        data = json.load(f)
+    #all_links_720 = load_dataset_file("/content/drive/MyDrive/Research/JWSLT/Variables/all720.list")
+    
     i=0
     j=0
     k=0
     for obj in data:
         video_url = obj["videoUrl"]
-        video_name = video_url.split('/')[-1].split('.')[0]
+        video_name = obj["video_name"]
+        lan = obj["slang"]
         if video_url is None:
             continue
         
-        file_path = Path(args.save_path + f"/{lan}_videos/{video_name}.mp4")
+        file_path = Path(args.save_path + f"/{lan}/{video_name}.mp4")
         if file_path.exists():
             logging.info(f"{file_path} already exists")
             continue
@@ -52,7 +47,7 @@ def main(args):
           j = j + 1
         
         k = k + 1 
-    logging.info(f"Downloading {lan} set finished, {k} videos. {i} completed and {j} were skipped.")
+    logging.info(f"Downloading all set finished, {k} videos. {i} completed and {j} were skipped.")
 
 if __name__ == "__main__":
     parse = argparse.ArgumentParser()
