@@ -30,7 +30,7 @@ def main(args):
     #root_path = Path(args.save_path + lan)
     root_path = Path(args.save_path)
     
-    filepath = "/home/s_gueuwou/gbucketafrisign/all_links_720_29.list"
+    filepath = "/content/gbucketafrisign/all_links_720_29.list"
     with gzip.open(filepath, "rb") as f:
       data = pickle.load(f)    
     verses_list = []
@@ -38,22 +38,20 @@ def main(args):
     cum_dur = 0
     vidnum = 1
     verse_i = 0
-    for obj in data:
+    for obj in data[20000:]:
       #video_url = obj["videoUrl"]
       video_name = obj["video_name"]
       lan = obj["slang"]
       if video_name is None:
         continue
         
-      video_path = Path(f"/home/s_gueuwou/gbucketafrisign/videos/{lan}/{video_name}.mp4")      
-      json_path = Path(f"/home/s_gueuwou/gbucketafrisign/vinfo/{lan}/{video_name}.json")      
-      refB = video_name
+      video_path = Path(f"/content/gbucketafrisign/videos/{lan}/{video_name}.mp4")      
+      json_path = Path(f"/content/gbucketafrisign/vinfo/{lan}/{video_name}.json")      
+      video = cv2.VideoCapture(str(video_path))
 
-      if Path(json_path).exists():
-        pass
-      else:  
-        json_path.parent.mkdir(parents=True, exist_ok=True)
-        os.system(f"ffprobe -i {video_path} -print_format default -show_chapters -loglevel error > {root_path}/{lan}/{refB}.json 2>&1")
+      refB = video_name
+      json_path.parent.mkdir(parents=True, exist_ok=True)
+      os.system(f"ffprobe -i {video_path} -print_format default -show_chapters -loglevel error > {root_path}/{lan}/{refB}.json 2>&1")
       
 
       try:
@@ -79,7 +77,7 @@ def main(args):
         df["end_time"] = df["end_time"].str.replace("end_time=", "")
         df["title"] = df["title"].str.replace("TAG:title=", "")      
         
-        video = cv2.VideoCapture(str(video_path))
+        #video = cv2.VideoCapture(str(video_path))
         for index, row in df.iterrows():           
             verse_dict = {}
             verse_i = verse_i + 1  
@@ -102,8 +100,8 @@ def main(args):
       print(f"Video {vidnum} - {refB} done.")         
       video.release()
       cv2.destroyAllWindows() 
-    filep = gzip.GzipFile(f"/home/s_gueuwou/gbucketafrisign/vinfo720.dict", 'wb')
-    fileq = gzip.GzipFile(f"/home/s_gueuwou/gbucketafrisign/verses_e.dict", 'wb')
+    filep = gzip.GzipFile(f"/content/gbucketafrisign/vinfo720.dict", 'wb')
+    fileq = gzip.GzipFile(f"/content/gbucketafrisign/verses_e.dict", 'wb')
     filep.write(pickle.dumps(verses_list,0))
     fileq.write(pickle.dumps(verses_error,0))
     filep.close()
