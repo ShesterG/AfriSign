@@ -30,7 +30,7 @@ def main(args):
     #root_path = Path(args.save_path + lan)
     root_path = Path(args.save_path)
     
-    filepath = "/home/s_gueuwou/gbucketafrisign/all_links_720_29.list"
+    filepath = "/content/gbucketafrisign/all_links_720_29.list"
     with gzip.open(filepath, "rb") as f:
       data = pickle.load(f)    
     verses_list = []
@@ -45,13 +45,14 @@ def main(args):
       if video_name is None:
         continue
         
-      video_path = Path(f"/home/s_gueuwou/gbucketafrisign/videos/{lan}/{video_name}.mp4")      
-      json_path = Path(f"/home/s_gueuwou/gbucketafrisign/vinfo/{lan}/{video_name}.json")      
-      video = cv2.VideoCapture(str(video_path))
+      video_path = Path(f"/content/gbucketafrisign/videos/{lan}/{video_name}.mp4")      
+      json_path = Path(f"/content/gbucketafrisign/vinfo/{lan}/{video_name}.json")      
+      #video = cv2.VideoCapture(str(video_path))
 
       refB = video_name
-      json_path.parent.mkdir(parents=True, exist_ok=True)
-      os.system(f"ffprobe -i {video_path} -print_format default -show_chapters -loglevel error > {root_path}/{lan}/{refB}.json 2>&1")
+      if not Path(json_path).exists():
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        os.system(f"ffprobe -i {video_path} -print_format default -show_chapters -loglevel error > {root_path}/{lan}/{refB}.json 2>&1")
       
 
       try:
@@ -98,10 +99,10 @@ def main(args):
 
       vidnum += 1 
       print(f"Video {vidnum} - {refB} done.")         
-      video.release()
-      cv2.destroyAllWindows() 
-    filep = gzip.GzipFile(f"/home/s_gueuwou/gbucketafrisign/vinfo720.dict", 'wb')
-    fileq = gzip.GzipFile(f"/home/s_gueuwou/gbucketafrisign/verses_e.dict", 'wb')
+      #video.release()
+      #cv2.destroyAllWindows() 
+    filep = gzip.GzipFile(f"/content/gbucketafrisign/vinfo720.dict", 'wb')
+    fileq = gzip.GzipFile(f"/content/gbucketafrisign/verses_e.dict", 'wb')
     filep.write(pickle.dumps(verses_list,0))
     fileq.write(pickle.dumps(verses_error,0))
     filep.close()
