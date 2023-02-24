@@ -26,37 +26,39 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 
 def main(args):
-    lan = str(args.sign_lang)
-    root_path = Path(args.save_path + lan)
-    videos_path = Path(args.save_path + lan + f"/{lan}_videos")
-
-    if Path(f"{root_path}/{lan}_videospath.txt").exists():
-        print(f"{lan}_videospath.txt exists.")
-        files_grabbed = []
-        with open(f"{root_path}/{lan}_videospath.txt", 'r') as filehandle:
-            for line in filehandle:
-                # Remove linebreak which is the last character of the string
-                curr_place = line[:-1]
-                # Add item to the list
-                files_grabbed.append(curr_place)
-    else:
-        files_grabbed = sorted(videos_path.glob('*.mp4'), key=os.path.getmtime)
-        with open(f"{root_path}/{lan}_videospath.txt", 'w') as filehandle:
-            for listitem in files_grabbed:
-                filehandle.write(f'{listitem}\n')
-
-
-    vidnum = 0    
-    verses_list=[]
-    verse_i = 0
+    #lan = str(args.sign_lang)
+    #root_path = Path(args.save_path + lan)
+    root_path = Path(args.save_path)
+    
+    filepath = "/home/s_gueuwou/gbucketafrisign/all_links_720_29.list"
+    with gzip.open(filepath, "rb") as f:
+      data = pickle.load(f)    
+    verses_list = []
+    verses_error = []
     cum_dur = 0
-
-    for videopath in files_grabbed:
-        refB = str(videopath).split('/')[-1].split('.')[0]
-        os.system(f"ffprobe -i {videopath} -print_format default -show_chapters -loglevel error > {root_path}/{refB}.json 2>&1")
+    vidnum = 1
+    verse_i = 0
+    for obj in data:
+      #video_url = obj["videoUrl"]
+      video_name = obj["video_name"]
+      lan = obj["slang"]
+      if video_name is None:
+        continue
         
-        with open(f"{root_path}/{refB}.json", "r") as infile:
-            print(str(videopath))
+      video_path = Path(f"/home/s_gueuwou/gbucketafrisign/videos/{lan}/{video_name}.mp4")      
+      json_path = Path(f"/home/s_gueuwou/gbucketafrisign/vinfo/{lan}/{video_name}.json")      
+      refB = video_name
+
+      if Path(json_path).exists():
+        pass
+      else:  
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        os.system(f"ffprobe -i {video_path} -print_format default -show_chapters -loglevel error > {root_path}/{lan}/{refB}.json 2>&1")
+      
+
+      try:
+        with open(f"{root_path}/{lan}/{refB}.json", "r") as infile:
+            print(str(video_path))
             data = infile.read()
 
             if str(data)[:9]=="[CHAPTER]": 
@@ -77,34 +79,40 @@ def main(args):
         df["end_time"] = df["end_time"].str.replace("end_time=", "")
         df["title"] = df["title"].str.replace("TAG:title=", "")      
         
-        video = cv2.VideoCapture(str(videopath))
+        video = cv2.VideoCapture(str(video_path))
         for index, row in df.iterrows():           
             verse_dict = {}
             verse_i = verse_i + 1  
             verse_dict["verse_num"] = verse_i
             verse_dict["video_num"] = vidnum              
             verse_dict["video_name"] = refB
-            verse_dict["verse_name"] = row["title"]            
+            verse_dict["verse_lang"] = lan
+            verse_dict["verse_name"] = row["title"]  
+            verse_dict["verse_start"] = float(row["start_time"]) 
+            verse_dict["verse_end"] = float(row["end_time"])          
             verse_dict["duration"] = float(float(row["end_time"]) - float(row["start_time"]))
             verse_dict["cum_duration"] = cum_dur + (verse_dict["duration"]/3600.0)
-            cum_dur = verse_dict["cum_duration"]
+            #cum_dur = verse_dict["cum_duration"]
             verses_list.append(verse_dict)
-                    
-        vidnum += 1 
-        print(f"Video {vidnum} - {refB} done.")         
-        video.release()
-        cv2.destroyAllWindows() 
-    file = gzip.GzipFile(f"/content/drive/MyDrive/Sign_Language_Videos/dataset/T{lan}240.dataset", 'wb')
-    file.write(pickle.dumps(verses_list,0))
-    file.close()
+      except:
+        verses_error.append(obj)
+
+
+      vidnum += 1 
+      print(f"Video {vidnum} - {refB} done.")         
+      video.release()
+      cv2.destroyAllWindows() 
+    filep = gzip.GzipFile(f"/home/s_gueuwou/gbucketafrisign/vinfo720.dict", 'wb')
+    fileq = gzip.GzipFile(f"/home/s_gueuwou/gbucketafrisign/verses_e.dict", 'wb')
+    filep.write(pickle.dumps(verses_list,0))
+    fileq.write(pickle.dumps(verses_error,0))
+    filep.close()
+    fileq.close()
     print(cum_dur, len(verses_list))
 if __name__ == "__main__":
     parse = argparse.ArgumentParser()
     parse.add_argument(
-        "--save_path", help="Path to save the video", default="./videos", type=str
-    )
-    parse.add_argument(
-        "--sign_lang", help="Sign Language to work on", default="gse", type=str
+        "--save_path", help="Path to save the videos info json files", default="./videos", type=str
     )
     args = parse.parse_args()
     logging.info("Start converting dataset")
